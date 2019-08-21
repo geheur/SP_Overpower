@@ -28,7 +28,7 @@ function SP_OP_GetSpellID(name)
 	local spellID = 1
 	local spellName = nil
 	while 1 do
-		spellName = GetSpellName(spellID, BOOKTYPE_SPELL)
+		spellName = GetSpellBookItemName(spellID, BOOKTYPE_SPELL)
 		if spellName == name then
 			return spellID
 		end
@@ -84,13 +84,13 @@ function SP_OP_ResetPosition()
 	SP_OP_SetPosition()
 end
 function SP_OP_SetPosition()
-	SP_OP_Frame:SetPoint("CENTER", "UIParent", "CENTER", SP_OP_GS["x"], SP_OP_GS["y"])
+	SP_OP_Frame:SetPoint("CENTER", UIParent, "CENTER", SP_OP_GS["x"], SP_OP_GS["y"])
 end
 
-function SP_OP_OnLoad()
-	this:RegisterEvent("ADDON_LOADED")
-	this:RegisterEvent("CHAT_MSG_COMBAT_SELF_MISSES")
-	this:RegisterEvent("CHAT_MSG_SPELL_SELF_DAMAGE")
+function SP_OP_OnLoad(self)
+	self:RegisterEvent("ADDON_LOADED")
+	-- SP_OP_Frame:RegisterEvent("CHAT_MSG_COMBAT_SELF_MISSES")
+	-- SP_OP_Frame:RegisterEvent("CHAT_MSG_SPELL_SELF_DAMAGE")
 
 	SLASH_SPOVERPOWER1 = "/op"
 	SLASH_SPOVERPOWER2 = "/spop"
@@ -98,13 +98,14 @@ function SP_OP_OnLoad()
 end
 
 StaticPopupDialogs["SP_OP_Install"] = {
-	text = TEXT("Thank you for installing SP_Overpower 1.3! Use the chat command /op to change the position of the timer bar."),
-	button1 = TEXT(YES),
+	text = "Thank you for installing SP_Overpower 1.3! Use the chat command /op to change the position of the timer bar.",
+	button1 = "Yes",
 	timeout = 0,
 	hideOnEscape = 1,
 };
 
-function SP_OP_OnEvent()
+function SP_OP_OnEvent(self, event, arg1)
+	print(event, arg1)
 	if (event == "ADDON_LOADED") then
 		if (string.lower(arg1) == "sp_overpower") then
 
@@ -149,7 +150,7 @@ function SP_OP_OnEvent()
 	end
 end
 
-function SP_OP_OnUpdate(delta)
+function SP_OP_OnUpdate(self, delta)
 	if (SP_OP_TimeLeft > 0) then
 
 		SP_OP_TimeLeft = SP_OP_TimeLeft - delta
@@ -164,6 +165,48 @@ end
 function SP_OP_Reset(name)
 	local op_spellID = SP_OP_GetSpellID("Overpower")
 	if op_spellID == nil then
+--[[
+/tad SP_OP_Frame
+/script SP_OP_FrameTime:SetColorTexture(1, 0, 0, 1)
+/script SP_OP_FrameTime:SetColorTexture(1, 0, 0)
+/script SP_OP_FrameShadowTime:SetTexture(1, 0, 0, 1)
+/script SP_OP_Frame.tex = SP_OP_Frame:CreateTexture(nil, "OVERLAY")
+/script SP_OP_Frame.tex:Show()
+/script SP_OP_Frame.tex:SetColorTexture(1, 0, 0)
+/script SP_OP_Frame.tex:SetPoint("TOPLEFT", SP_OP_Frame, "TOPLEFT")
+/script SP_OP_Frame.tex:SetPoint("BOTTOMRIGHT", SP_OP_Frame, "BOTTOMRIGHT")
+/dump SP_OP_Frame.tex:IsShown()
+/dump SP_OP_Frame.tex:IsVisible()
+/dump SP_OP_Frame.tex:SetParent(UIParent)
+/dump SP_OP_Frame.tex:SetParent(SP_OP_Frame)
+/dump UIParent.tex:IsShown()
+/dump UIParent.tex:IsVisible()
+/script UIParent.tex = UIParent:CreateTexture(nil, "OVERLAY")
+/script UIParent.tex:Show()
+/script UIParent.tex:SetColorTexture(1, 0, 0, 1)
+/script UIParent.tex:SetPoint("TOPLEFT", UIParent, "TOPLEFT")
+/script UIParent.tex:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -100, 100)
+/script UIParent.tex:ClearAllPoints()
+/script UIParent.tex:Hide()
+/dump SP_OP_FrameTime:SetParent(UIParent)
+/dump SP_OP_FrameTime:Hide()
+/dump SP_OP_FrameTime:Show()
+/dump SP_OP_FrameShadowTime:SetParent(UIParent)
+/dump SP_OP_Frame.tex:GetSize()
+/dump SP_OP_Frame:GetSize()
+/dump SP_OP_Frame:SetPoint("CENTER")
+/script SP_OP_FrameTime.bla = "bla"
+/script SP_OP_FrameTime:Show()
+/dump SP_OP_FrameShadowTime:GetFrameType()
+/dump SP_OP_Frame
+
+isvisible
+frametype
+
+/script SP_OP_FrameTime:SetColorTexture(r, g, b)
+		self["pixel"..x..","..y] = self:CreateTexture(nil, "OVERLAY")
+/dump SP_OP_FrameTime:IsVisible()
+--]]
 		return
 	end
 
@@ -179,7 +222,8 @@ function SP_OP_Reset(name)
 		SP_OP_Name = name
 		SP_OP_FrameTargetName:SetText(name)
 
-		PlaySoundFile("Sound\\Interface\\AuctionWindowClose.wav")
+		-- PlaySoundFile("Sound\\Interface\\AuctionWindowClose.wav")
+		print("TODO sound file")
 	end
 	--[[
 
@@ -211,7 +255,7 @@ function SP_OP_UpdateDisplay()
 			SP_OP_FrameTime:SetWidth(w)
 			SP_OP_FrameTime:Show()
 		else
-			SP_OP_FrameTime:Hide()
+			-- SP_OP_FrameTime:Hide()
 		end
 		SP_OP_FrameShadowTime:SetWidth(w2)
 		SP_OP_FrameShadowTime:Show()

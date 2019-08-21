@@ -3,15 +3,9 @@
 	<Script file="SP_Overpower.lua"/>
 	<Frame name="SP_OP_Frame" parent="UIParent" hidden="false">
 		<Scripts>
-			<OnLoad>
-				SP_OP_OnLoad();
-			</OnLoad>
-			<OnEvent>
-				SP_OP_OnEvent();
-			</OnEvent>
-			<OnUpdate>
-				SP_OP_OnUpdate(arg1);
-			</OnUpdate>
+			<OnLoad function="SP_OP_OnLoad"/>
+			<OnEvent function="SP_OP_OnEvent"/>
+			<OnUpdate function="SP_OP_OnUpdate"/>
 		</Scripts>
 
 		<Size>
