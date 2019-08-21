@@ -105,10 +105,9 @@ StaticPopupDialogs["SP_OP_Install"] = {
 	hideOnEscape = 1,
 };
 
-function SP_OP_OnEvent(self, event, arg1)
-	print(event, arg1)
+function SP_OP_OnEvent(self, event, ...)
 	if (event == "ADDON_LOADED") then
-		if (string.lower(arg1) == "sp_overpower") then
+		if (string.lower(select(1, ...)) == "sp_overpower") then
 
 			if (SP_OP_GS == nil) then
 				StaticPopup_Show("SP_OP_Install")
@@ -126,42 +125,21 @@ function SP_OP_OnEvent(self, event, arg1)
 		end
 
 	elseif (event == "COMBAT_LOG_EVENT") then
-		local timestamp = arg1
-		local evt = arg2
-		if not (evt == "SWING_MISSED") then
-			return
+		local timestamp,evt = CombatLogGetCurrentEventInfo()
+		-- The indexes match up with the numbers given on the wiki page https://wowwiki.fandom.com/wiki/API_COMBAT_LOG_EVENT.
+		local e = {select(3, CombatLogGetCurrentEventInfo())}
+
+		-- print(evt, e[7], e[13], e[11])
+		if evt == "SWING_MISSED" or evt == "SPELL_MISSED" then
+			local target,missType = e[7],e[13]
+			if missType == "DODGE" then
+				SP_OP_Reset(target)
+			end
 		end
-		local hideCaster = arg3
-		local sourceGUID = arg4
-		local sourceName = arg5
-		local sourceFlags = arg6
-		local sourceRaidFlags = arg7
-		local destGUID = arg8
-		local destName = arg9
-		local destFlags = arg10
-		local destRaidFlags = arg11
-		local missType = arg12
-		if missType == "DODGE" then
-			SP_OP_Reset()
+		if evt == "SPELL" and e[11] == "Overpower" then
+			SP_OP_TimeLeft = 0
+			SP_OP_UpdateDisplay()
 		end
-
-	-- elseif (event == "CHAT_MSG_SPELL_SELF_DAMAGE") then
-
-	-- 	--SP_OP_Print(arg1)
-	-- 	local a,b,str = string.find(arg1, " was dodged by (.+).")
-
-	-- 	if a then
-	-- 		SP_OP_Reset(str)
-	-- 	else
-	-- 		a,b,str = string.find(arg1, "Your (.+) hits")
-	-- 		if not str then a,b,str = string.find(arg1, "Your (.+) crits") end
-	-- 		if not str then a,b,str = string.find(arg1, "Your (.+) is") end
-	-- 		if not str then a,b,str = string.find(arg1, "Your (.+) misses") end
-	-- 		if str == "Overpower" then
-	-- 			SP_OP_TimeLeft = 0
-	-- 			SP_OP_UpdateDisplay()
-	-- 		end
-	-- 	end
 	end
 end
 
@@ -177,51 +155,9 @@ function SP_OP_OnUpdate(self, delta)
 	end
 end
 
-function SP_OP_Reset()
+function SP_OP_Reset(name)
 	local op_spellID = SP_OP_GetSpellID("Overpower")
 	if op_spellID == nil then
---[[
-/tad SP_OP_Frame
-/script SP_OP_FrameTime:SetColorTexture(1, 0, 0, 1)
-/script SP_OP_FrameTime:SetColorTexture(1, 0, 0)
-/script SP_OP_FrameShadowTime:SetTexture(1, 0, 0, 1)
-/script SP_OP_Frame.tex = SP_OP_Frame:CreateTexture(nil, "OVERLAY")
-/script SP_OP_Frame.tex:Show()
-/script SP_OP_Frame.tex:SetColorTexture(1, 0, 0)
-/script SP_OP_Frame.tex:SetPoint("TOPLEFT", SP_OP_Frame, "TOPLEFT")
-/script SP_OP_Frame.tex:SetPoint("BOTTOMRIGHT", SP_OP_Frame, "BOTTOMRIGHT")
-/dump SP_OP_Frame.tex:IsShown()
-/dump SP_OP_Frame.tex:IsVisible()
-/dump SP_OP_Frame.tex:SetParent(UIParent)
-/dump SP_OP_Frame.tex:SetParent(SP_OP_Frame)
-/dump UIParent.tex:IsShown()
-/dump UIParent.tex:IsVisible()
-/script UIParent.tex = UIParent:CreateTexture(nil, "OVERLAY")
-/script UIParent.tex:Show()
-/script UIParent.tex:SetColorTexture(1, 0, 0, 1)
-/script UIParent.tex:SetPoint("TOPLEFT", UIParent, "TOPLEFT")
-/script UIParent.tex:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -100, 100)
-/script UIParent.tex:ClearAllPoints()
-/script UIParent.tex:Hide()
-/dump SP_OP_FrameTime:SetParent(UIParent)
-/dump SP_OP_FrameTime:Hide()
-/dump SP_OP_FrameTime:Show()
-/dump SP_OP_FrameShadowTime:SetParent(UIParent)
-/dump SP_OP_Frame.tex:GetSize()
-/dump SP_OP_Frame:GetSize()
-/dump SP_OP_Frame:SetPoint("CENTER")
-/script SP_OP_FrameTime.bla = "bla"
-/script SP_OP_FrameTime:Show()
-/dump SP_OP_FrameShadowTime:GetFrameType()
-/dump SP_OP_Frame
-
-isvisible
-frametype
-
-/script SP_OP_FrameTime:SetColorTexture(r, g, b)
-		self["pixel"..x..","..y] = self:CreateTexture(nil, "OVERLAY")
-/dump SP_OP_FrameTime:IsVisible()
---]]
 		return
 	end
 
@@ -270,7 +206,7 @@ function SP_OP_UpdateDisplay()
 			SP_OP_FrameTime:SetWidth(w)
 			SP_OP_FrameTime:Show()
 		else
-			-- SP_OP_FrameTime:Hide()
+			SP_OP_FrameTime:Hide()
 		end
 		SP_OP_FrameShadowTime:SetWidth(w2)
 		SP_OP_FrameShadowTime:Show()
