@@ -89,8 +89,9 @@ end
 
 function SP_OP_OnLoad()
 	this:RegisterEvent("ADDON_LOADED")
-	this:RegisterEvent("CHAT_MSG_COMBAT_SELF_MISSES")
-	this:RegisterEvent("CHAT_MSG_SPELL_SELF_DAMAGE")
+	this:RegisterEvent("COMBAT_LOG_EVENT")
+	-- this:RegisterEvent("CHAT_MSG_COMBAT_SELF_MISSES")
+	-- this:RegisterEvent("CHAT_MSG_SPELL_SELF_DAMAGE")
 
 	SLASH_SPOVERPOWER1 = "/op"
 	SLASH_SPOVERPOWER2 = "/spop"
@@ -123,29 +124,43 @@ function SP_OP_OnEvent()
 			SP_OP_Print("SP_Overpower 1.3 loaded. Options: /op")
 		end
 
-	elseif (event == "CHAT_MSG_COMBAT_SELF_MISSES") then
-		local a,b,str = string.find(arg1, "You attack. (.+) dodges.")
-		if a then
-			SP_OP_Reset(str)
+	elseif (event == "COMBAT_LOG_EVENT") then
+		local timestamp = arg1
+		local evt = arg2
+		if not (evt == "SWING_MISSED") then
+			return
+		end
+		local hideCaster = arg3
+		local sourceGUID = arg4
+		local sourceName = arg5
+		local sourceFlags = arg6
+		local sourceRaidFlags = arg7
+		local destGUID = arg8
+		local destName = arg9
+		local destFlags = arg10
+		local destRaidFlags = arg11
+		local missType = arg12
+		if missType == "DODGE" then
+			SP_OP_Reset()
 		end
 
-	elseif (event == "CHAT_MSG_SPELL_SELF_DAMAGE") then
+	-- elseif (event == "CHAT_MSG_SPELL_SELF_DAMAGE") then
 
-		--SP_OP_Print(arg1)
-		local a,b,str = string.find(arg1, " was dodged by (.+).")
+	-- 	--SP_OP_Print(arg1)
+	-- 	local a,b,str = string.find(arg1, " was dodged by (.+).")
 
-		if a then
-			SP_OP_Reset(str)
-		else
-			a,b,str = string.find(arg1, "Your (.+) hits")
-			if not str then a,b,str = string.find(arg1, "Your (.+) crits") end
-			if not str then a,b,str = string.find(arg1, "Your (.+) is") end
-			if not str then a,b,str = string.find(arg1, "Your (.+) misses") end
-			if str == "Overpower" then
-				SP_OP_TimeLeft = 0
-				SP_OP_UpdateDisplay()
-			end
-		end
+	-- 	if a then
+	-- 		SP_OP_Reset(str)
+	-- 	else
+	-- 		a,b,str = string.find(arg1, "Your (.+) hits")
+	-- 		if not str then a,b,str = string.find(arg1, "Your (.+) crits") end
+	-- 		if not str then a,b,str = string.find(arg1, "Your (.+) is") end
+	-- 		if not str then a,b,str = string.find(arg1, "Your (.+) misses") end
+	-- 		if str == "Overpower" then
+	-- 			SP_OP_TimeLeft = 0
+	-- 			SP_OP_UpdateDisplay()
+	-- 		end
+	-- 	end
 	end
 end
 
@@ -161,7 +176,7 @@ function SP_OP_OnUpdate(delta)
 	end
 end
 
-function SP_OP_Reset(name)
+function SP_OP_Reset()
 	local op_spellID = SP_OP_GetSpellID("Overpower")
 	if op_spellID == nil then
 		return
@@ -176,8 +191,8 @@ function SP_OP_Reset(name)
 
 	if SP_OP_CDTime < 4 then
 		SP_OP_TimeLeft = 4
-		SP_OP_Name = name
-		SP_OP_FrameTargetName:SetText(name)
+		SP_OP_Name = ""
+		SP_OP_FrameTargetName:SetText("")
 
 		PlaySoundFile("Sound\\Interface\\AuctionWindowClose.wav")
 	end
@@ -221,7 +236,6 @@ function SP_OP_UpdateDisplay()
 		SP_OP_Frame:SetAlpha(1)
 	end
 end
-
 
 
 
